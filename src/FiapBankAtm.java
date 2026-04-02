@@ -10,7 +10,7 @@ public class FiapBankAtm {
     public class Usuario{
         public String nome;
         public String senha;
-        double saldo;
+        private double saldo;
 
         Usuario(String nome, String senha){
             this.nome = nome;
@@ -19,55 +19,98 @@ public class FiapBankAtm {
             usuarios.add(this);
         }
 
+        boolean fazerDeposito(double dinheiro) throws Exception {
+            if (dinheiro <= 0) throw new Exception("Valor inválido para depósito.");
+            this.saldo += dinheiro;
+            return true;
+        }
+
+        boolean fazerSaque(double dinheiro) throws Exception {
+            if (dinheiro <= 0) throw new Exception("Valor inválido para saque.");
+            if (dinheiro > this.saldo) throw new Exception("Saldo insuficiente.");
+            this.saldo -= dinheiro;
+            return true;
+        }
+
+        double getSaldo(){
+            return saldo;
+        }
+
+
     }
 
 
 
 
-    public void main(String[] args){
-        try{
+    public void main(String[] args) {
+        try {
             Scanner leitor = new Scanner(System.in);
             System.out.println(Mensagens.LOGO.getMensagem());
             System.out.println(Mensagens.OP_INICIO.getMensagem());
-            int opcao = leitor.nextInt();
-            while(true){
-                //Lógica do código
-                switch (opcao){
-                    case 1:
-                        opcao = login();
-                        break;
-                    case 2:
-                        opcao = cadastro();
-                        break;
-                    case 3:
-                        opcao = sessao();
-                        break;
-                    case 0:
-                        System.exit(0);
-
+            int opcao = Integer.parseInt(leitor.nextLine().trim());
+            while (true) {
+                switch (opcao) {
+                    case 1: opcao = login(leitor); break;
+                    case 2: opcao = cadastro(leitor); break;
+                    case 3: opcao = sessao(leitor); break;
+                    case 11: opcao = consulta_saldo(); break;
+                    case 12: opcao = fazer_deposito(leitor); break;
+                    case 13: opcao = fazer_saque(leitor); break;
+                    case 0: System.exit(0);
                     default:
                         System.out.println(Mensagens.OP_INICIO.getMensagem());
-                        opcao = leitor.nextInt();
-
+                        opcao = Integer.parseInt(leitor.nextLine().trim());
                 }
-
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             System.out.println("Fechando o programa ...");
             System.exit(0);
         }
     }
 
-    public int sessao(){
-        System.out.println("Olá "+ sessao_atual.nome + " tudo bem?");
-        return 0;
+    public int consulta_saldo(){
+        System.out.println("Saldo atual de "+ sessao_atual.nome+ "\n R$" + sessao_atual.getSaldo());
+        return 3;
+    }
+    public int fazer_deposito(Scanner leitor) {
+        System.out.println(Mensagens.DEPOSITO.getMensagem());
+        try {
+            double valor = Double.parseDouble(leitor.nextLine().trim());
+            sessao_atual.fazerDeposito(valor);
+            System.out.println("Sucesso, R$" + valor + " foram adicionados na sua conta " + sessao_atual.nome);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return 3;
+    }
+
+    public int fazer_saque(Scanner leitor) {
+        System.out.println(Mensagens.SAQUE.getMensagem());
+        try {
+            double valor = Double.parseDouble(leitor.nextLine().trim());
+            sessao_atual.fazerSaque(valor);
+            System.out.println("Sucesso, R$" + valor + " foram removidos da sua conta " + sessao_atual.nome);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return 3;
     }
 
 
 
-    public int login(){
+    public int sessao(Scanner leitor){
+
+        System.out.println("Olá "+ sessao_atual.nome + " tudo bem?");
+        System.out.println(Mensagens.SESSAO.getMensagem());
+        int opcao = Integer.parseInt(leitor.nextLine().trim());
+        if (opcao == 4)return 3;
+        return opcao + 10;
+    }
+
+
+
+    public int login(Scanner leitor){
         try{
-            Scanner leitor = new Scanner(System.in);
             String nome, senha;
 
             System.out.println(Mensagens.LOGIN_NOME.getMensagem());
@@ -111,9 +154,9 @@ public class FiapBankAtm {
     }
 
 
-    public int cadastro(){
+    public int cadastro(Scanner leitor){
         try{
-            Scanner leitor = new Scanner(System.in);
+
             String nome, senha;
 
             System.out.println(Mensagens.CADASTRO_NOME.getMensagem());
@@ -131,7 +174,6 @@ public class FiapBankAtm {
             //Código só chega aqui caso tudo tenha sido validado, logo insiro na lista de usuarios e na sessão atual
             System.out.println("Sucesso " + nome + " cadastrado!");
             Usuario user = new Usuario(nome, senha);
-            usuarios.add(user);
 
         }catch (Exception e){
             return 404;
@@ -208,7 +250,21 @@ public class FiapBankAtm {
                 """),
         LOGIN_SENHA("""
                 Digite a sua senha
-                """);
+                """),
+        SESSAO("""
+                [ 1 ] Consultar Saldo
+                [ 2 ] Fazer Depósito
+                [ 3 ] Fazer Saque
+                [ 4 ] Logout
+                """),
+        DEPOSITO("""
+        Digite o valor do depósito:
+        ->
+        """),
+        SAQUE("""
+        Digite o valor do saque:
+        ->
+        """);
 
 
         private final String Mensagem;
