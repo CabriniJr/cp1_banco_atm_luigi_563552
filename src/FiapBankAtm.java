@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class FiapBankAtm {
+    final int TENTATIVAS_MAXIMAS = 3;
     ArrayList<Usuario> usuarios = new ArrayList<>();
 
     Usuario sessao_atual;
@@ -57,10 +58,58 @@ public class FiapBankAtm {
         }
     }
 
-    public static int login(){
+    public int sessao(){
+        System.out.println("Olá "+ sessao_atual.nome + " tudo bem?");
+        return 0;
+    }
 
+
+
+    public int login(){
+        try{
+            Scanner leitor = new Scanner(System.in);
+            String nome, senha;
+
+            System.out.println(Mensagens.LOGIN_NOME.getMensagem());
+            nome = leitor.nextLine().trim();
+            //Busca do usuário
+            Usuario usuario = busca_usuario(nome);
+
+
+            boolean autenticado = false;
+            for (int tentativas = 0; tentativas < TENTATIVAS_MAXIMAS; tentativas++) {
+                System.out.println(Mensagens.LOGIN_SENHA.getMensagem() + usuario.nome);
+                senha = leitor.nextLine();
+                if (usuario.senha.equals(senha)) {
+                    autenticado = true;
+                    break;
+                }
+                System.out.println("Senha incorreta, tentativas restantes: " + (TENTATIVAS_MAXIMAS - tentativas - 1));
+            }
+
+            if (!autenticado) {
+                System.out.println("Número máximo de tentativas atingido.");
+                return 0;
+            }
+            //Usuario e senha válidos, inicia a sessão
+            sessao_atual = usuario;
+
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return 404;
+        }
         return 3;
     }
+    public Usuario busca_usuario(String nome) throws Exception {
+        for (var u : usuarios) {
+            if (u.nome.equals(nome)) {
+                return u;
+            }
+        }
+        throw new Exception("Usuário " + nome + " não existe!");
+    }
+
 
     public int cadastro(){
         try{
@@ -80,13 +129,14 @@ public class FiapBankAtm {
             if(!teste_senha(senha)) return 404;
             //Testa a senha
             //Código só chega aqui caso tudo tenha sido validado, logo insiro na lista de usuarios e na sessão atual
-            System.out.println("Sucesso " + nome);
-            sessao_atual = new Usuario(nome,senha);
+            System.out.println("Sucesso " + nome + " cadastrado!");
+            Usuario user = new Usuario(nome, senha);
+            usuarios.add(user);
 
         }catch (Exception e){
             return 404;
         }
-        return 3;
+        return 404;
     }
 
     public static boolean teste_nome(String nome){
@@ -143,7 +193,7 @@ public class FiapBankAtm {
                 [ 0 ] Sair
                 """),
         CADASTRO_NOME("""
-                Digite um nome válido
+                CADASTRO --> Digite um nome válido
                 """),
         CADASTRO_SENHA("""
                 Digite sua senha - requisitos
@@ -152,7 +202,14 @@ public class FiapBankAtm {
                 - Ao menos uma letra maiúscula.
                 - Ao menos um caracter especial da lista: !@#$%^&*()-_+=?><
                 ->
+                """),
+        LOGIN_NOME("""
+                LOGIN --> Digite seu nome
+                """),
+        LOGIN_SENHA("""
+                Digite a sua senha
                 """);
+
 
         private final String Mensagem;
         Mensagens(String s) {
