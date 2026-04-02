@@ -4,15 +4,14 @@ import java.util.Scanner;
 public class FiapBankAtm {
     final int TENTATIVAS_MAXIMAS = 3;
     ArrayList<Usuario> usuarios = new ArrayList<>();
-
     Usuario sessao_atual;
 
-    public class Usuario{
+    public class Usuario {
         public String nome;
         public String senha;
         private double saldo;
 
-        Usuario(String nome, String senha){
+        Usuario(String nome, String senha) {
             this.nome = nome;
             this.senha = senha;
             this.saldo = 0.0;
@@ -32,33 +31,30 @@ public class FiapBankAtm {
             return true;
         }
 
-        double getSaldo(){
+        double getSaldo() {
             return saldo;
         }
-
-
     }
-
-
-
 
     public void main(String[] args) {
         try {
             Scanner leitor = new Scanner(System.in);
             System.out.println(Mensagens.LOGO.getMensagem());
             System.out.println(Mensagens.OP_INICIO.getMensagem());
+            System.out.print("-> ");
             int opcao = Integer.parseInt(leitor.nextLine().trim());
             while (true) {
                 switch (opcao) {
-                    case 1: opcao = login(leitor); break;
-                    case 2: opcao = cadastro(leitor); break;
-                    case 3: opcao = sessao(leitor); break;
-                    case 11: opcao = consulta_saldo(); break;
+                    case 1:  opcao = login(leitor);          break;
+                    case 2:  opcao = cadastro(leitor);       break;
+                    case 3:  opcao = sessao(leitor);         break;
+                    case 11: opcao = consulta_saldo();       break;
                     case 12: opcao = fazer_deposito(leitor); break;
-                    case 13: opcao = fazer_saque(leitor); break;
-                    case 0: System.exit(0);
+                    case 13: opcao = fazer_saque(leitor);    break;
+                    case 0:  System.exit(0);
                     default:
                         System.out.println(Mensagens.OP_INICIO.getMensagem());
+                        System.out.print("-> ");
                         opcao = Integer.parseInt(leitor.nextLine().trim());
                 }
             }
@@ -68,143 +64,136 @@ public class FiapBankAtm {
         }
     }
 
-    public int consulta_saldo(){
-        System.out.println("Saldo atual de "+ sessao_atual.nome+ "\n R$" + sessao_atual.getSaldo());
+    public int consulta_saldo() {
+        System.out.println("─".repeat(50));
+        System.out.printf("  Saldo de %s%n", sessao_atual.nome);
+        System.out.printf("  R$ %.2f%n", sessao_atual.getSaldo());
+        System.out.println("─".repeat(50));
         return 3;
     }
+
     public int fazer_deposito(Scanner leitor) {
         System.out.println(Mensagens.DEPOSITO.getMensagem());
+        System.out.print("-> ");
         try {
             double valor = Double.parseDouble(leitor.nextLine().trim());
             sessao_atual.fazerDeposito(valor);
-            System.out.println("Sucesso, R$" + valor + " foram adicionados na sua conta " + sessao_atual.nome);
+            System.out.printf("  ✔ R$ %.2f depositados na conta de %s%n", valor, sessao_atual.nome);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("  ✘ " + e.getMessage());
         }
         return 3;
     }
 
     public int fazer_saque(Scanner leitor) {
         System.out.println(Mensagens.SAQUE.getMensagem());
+        System.out.print("-> ");
         try {
             double valor = Double.parseDouble(leitor.nextLine().trim());
             sessao_atual.fazerSaque(valor);
-            System.out.println("Sucesso, R$" + valor + " foram removidos da sua conta " + sessao_atual.nome);
+            System.out.printf("  ✔ R$ %.2f sacados da conta de %s%n", valor, sessao_atual.nome);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("  ✘ " + e.getMessage());
         }
         return 3;
     }
 
-
-
-    public int sessao(Scanner leitor){
-
-        System.out.println("Olá "+ sessao_atual.nome + " tudo bem?");
+    public int sessao(Scanner leitor) {
+        System.out.println("─".repeat(50));
+        System.out.printf("  Olá, %s! Saldo: R$ %.2f%n", sessao_atual.nome, sessao_atual.getSaldo());
+        System.out.println("─".repeat(50));
         System.out.println(Mensagens.SESSAO.getMensagem());
+        System.out.print("-> ");
         int opcao = Integer.parseInt(leitor.nextLine().trim());
-        if (opcao == 4)return 3;
+        if (opcao == 4) return 404;
         return opcao + 10;
     }
 
-
-
-    public int login(Scanner leitor){
-        try{
+    public int login(Scanner leitor) {
+        try {
             String nome, senha;
-
             System.out.println(Mensagens.LOGIN_NOME.getMensagem());
+            System.out.print("-> ");
             nome = leitor.nextLine().trim();
-            //Busca do usuário
-            Usuario usuario = busca_usuario(nome);
 
+            Usuario usuario = busca_usuario(nome);
 
             boolean autenticado = false;
             for (int tentativas = 0; tentativas < TENTATIVAS_MAXIMAS; tentativas++) {
                 System.out.println(Mensagens.LOGIN_SENHA.getMensagem() + usuario.nome);
+                System.out.print("-> ");
                 senha = leitor.nextLine();
                 if (usuario.senha.equals(senha)) {
                     autenticado = true;
                     break;
                 }
-                System.out.println("Senha incorreta, tentativas restantes: " + (TENTATIVAS_MAXIMAS - tentativas - 1));
+                System.out.println("  ✘ Senha incorreta. Tentativas restantes: " + (TENTATIVAS_MAXIMAS - tentativas - 1));
             }
 
             if (!autenticado) {
-                System.out.println("Número máximo de tentativas atingido.");
+                System.out.println("  ✘ Número máximo de tentativas atingido.");
                 return 0;
             }
-            //Usuario e senha válidos, inicia a sessão
+
             sessao_atual = usuario;
+            System.out.printf("  ✔ Bem-vindo, %s!%n", sessao_atual.nome);
 
-
-        }catch (Exception e){
-            System.out.println(e.getMessage());
+        } catch (Exception e) {
+            System.out.println("  ✘ " + e.getMessage());
             return 404;
         }
         return 3;
     }
+
     public Usuario busca_usuario(String nome) throws Exception {
         for (var u : usuarios) {
-            if (u.nome.equals(nome)) {
-                return u;
-            }
+            if (u.nome.equals(nome)) return u;
         }
-        throw new Exception("Usuário " + nome + " não existe!");
+        throw new Exception("Usuário " + nome + " não encontrado.");
     }
 
-
-    public int cadastro(Scanner leitor){
-        try{
-
+    public int cadastro(Scanner leitor) {
+        try {
             String nome, senha;
-
             System.out.println(Mensagens.CADASTRO_NOME.getMensagem());
-            nome = leitor.nextLine();
-            nome = nome.trim();
+            nome = leitor.nextLine().trim();
 
-            if(!teste_nome(nome)) return 404;
-            //Testa o nome
+            if (!teste_nome(nome)) return 404;
 
             System.out.println(Mensagens.CADASTRO_SENHA.getMensagem());
             senha = leitor.nextLine();
 
-            if(!teste_senha(senha)) return 404;
-            //Testa a senha
-            //Código só chega aqui caso tudo tenha sido validado, logo insiro na lista de usuarios e na sessão atual
-            System.out.println("Sucesso " + nome + " cadastrado!");
-            Usuario user = new Usuario(nome, senha);
+            if (!teste_senha(senha)) return 404;
 
-        }catch (Exception e){
+            Usuario user = new Usuario(nome, senha);
+            System.out.printf("  ✔ %s cadastrado com sucesso!%n", nome);
+
+        } catch (Exception e) {
             return 404;
         }
         return 404;
     }
 
-    public static boolean teste_nome(String nome){
-        // Testes executados no nome no cadastro
+    public static boolean teste_nome(String nome) {
         if (nome == null || nome.isBlank()) {
-            System.out.println("Nome inválido.");
+            System.out.println("  ✘ Nome inválido.");
             return false;
         } else if (!nome.matches("[a-zA-ZÀ-ú ]+")) {
-            System.out.println("Nome deve conter só letras.");
+            System.out.println("  ✘ Nome deve conter só letras.");
             return false;
         }
         return true;
     }
 
-    public static boolean teste_senha(String senha){
-        // Teste executados na senha
-        if(!senha.matches("^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*()\\-_+=?><]).{8,}$")){
-            System.out.println("Senha inválida!");
+    public static boolean teste_senha(String senha) {
+        if (!senha.matches("^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*()\\-_+=?><]).{8,}$")) {
+            System.out.println("  ✘ Senha inválida!");
             return false;
         }
         return true;
     }
 
-
-
-    public enum Mensagens{
+    public enum Mensagens {
         LOGO("""
                           _____                _____                    _____         \s
                          /\\    \\              /\\    \\                  /\\    \\        \s
@@ -227,7 +216,6 @@ public class FiapBankAtm {
                         /:::/    /                                    /:::/    /      \s
                         \\::/    /                                     \\::/    /       \s
                          \\/____/                                       \\/____/        \s
-                
                 """),
         OP_INICIO("""
                 [ 1 ] Login
@@ -235,22 +223,20 @@ public class FiapBankAtm {
                 [ 0 ] Sair
                 """),
         CADASTRO_NOME("""
-                CADASTRO --> Digite um nome válido
+                CADASTRO ──> Digite seu nome:
                 """),
         CADASTRO_SENHA("""
-                Digite sua senha - requisitos
-                - No mínimo 8 caracteres.
-                - Ao menos um número.
-                - Ao menos uma letra maiúscula.
-                - Ao menos um caracter especial da lista: !@#$%^&*()-_+=?><
-                ->
+                Digite sua senha:
+                  - Mínimo 8 caracteres
+                  - Ao menos um número
+                  - Ao menos uma letra maiúscula
+                  - Ao menos um caractere especial: !@#$%^&*()-_+=?>
                 """),
         LOGIN_NOME("""
-                LOGIN --> Digite seu nome
+                LOGIN ──> Digite seu nome:
                 """),
         LOGIN_SENHA("""
-                Digite a sua senha
-                """),
+                Senha para:\s"""),
         SESSAO("""
                 [ 1 ] Consultar Saldo
                 [ 2 ] Fazer Depósito
@@ -258,23 +244,20 @@ public class FiapBankAtm {
                 [ 4 ] Logout
                 """),
         DEPOSITO("""
-        Digite o valor do depósito:
-        ->
-        """),
+                Depósito ──> Digite o valor:
+                """),
         SAQUE("""
-        Digite o valor do saque:
-        ->
-        """);
-
+                Saque ──> Digite o valor:
+                """);
 
         private final String Mensagem;
+
         Mensagens(String s) {
             this.Mensagem = s;
         }
 
-        public String getMensagem(){
+        public String getMensagem() {
             return Mensagem;
         }
-
     }
 }
