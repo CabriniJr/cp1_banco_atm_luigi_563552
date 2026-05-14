@@ -36,7 +36,11 @@ public class FiapBankAtm {
         }
     }
 
-    public void main(String[] args) {
+    public static void main(String[] args) {
+        new FiapBankAtm().run(args);
+    }
+
+    public void run(String[] args) {
         try {
             Scanner leitor = new Scanner(System.in);
             System.out.println(Mensagens.LOGO.getMensagem());
